@@ -53,8 +53,8 @@ params.k_bar_ba = 200; % [Nm] k_bar_ba = k_ba * r_k^2
 
 params.r_k = 0.02; % [m] we choose this value and rest of the parameters are defined according to it and r, k_bar_ba
 params.r_h = params.r*params.r_k; % [m]
-params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
-% params.k_ba = 0; % [N/m]
+% params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
+params.k_ba = 0; % [N/m]
 params.phi_h0 = pi; % [rad] free angle of springs at hip
 params.phi_k0 = pi; % [rad] free angle of springs at knee
 
@@ -73,7 +73,9 @@ simulation_type = 1;
 switch simulation_type
     case 1
         % run a single walking simulation on terrain height k
-        k = 62; % delta = (k-1)*0.001 m
+
+        % select the uneven terrain difficulty, k=1 is flat terrain
+        k = 1; % delta = (k-1)*0.001 m
         deltaY = 0.001;
         [simout, inputTorque, des_theta_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k);
         fprintf("Time(end) = " + num2str(time(end)) + "\n")

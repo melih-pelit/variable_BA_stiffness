@@ -36,7 +36,11 @@ for i = 1:frame_leap:nt
     
     current_X = simout(i,:);
     
-    f_ba_springs = 1;
+    if k_ba == 0
+        f_ba_springs = 0;
+    else
+        f_ba_springs = 1;
+    end
     plot_5_links_robot(current_X, flag(i,2), flag(i,7), param, f_ba_springs)
     hold on
     
