@@ -45,7 +45,8 @@ I3 = I1;
 I4 = I2;
 
 %% Calculation CoM position
-foot_x = flag(2); % x position of the stance foot
+% foot_x = flag(2); % x position of the stance foot
+foot_x = 0; % for relative foot
 
 % x_g CoM's of respective links
 x_G = zeros(5);

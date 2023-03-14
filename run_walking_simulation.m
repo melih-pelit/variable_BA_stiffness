@@ -1,4 +1,4 @@
-function [simout, inputTorque, des_theta_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
+function [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
 
 %%
 ocl_traj = landing_traj.ocl_traj;
@@ -9,9 +9,23 @@ alpha_ref = pi - (2*ocl_traj.simout(:,1)+ocl_traj.simout(:,2))/2;
 % inputs_ref = ocl_traj.inputTorques;
 inputs_ref = [step_alpha_ref, step_inputs_ref];
 joint_angles_ref = [ocl_traj.time, ocl_traj.simout, alpha_ref];
+task_space_ref = [ocl_traj.time, ...
+    ocl_traj.xG, ocl_traj.yG, ocl_traj.x_sw, ocl_traj.y_sw, ocl_traj.trunk, ...
+    ocl_traj.dxG, ocl_traj.dyG, ocl_traj.dx_sw, ocl_traj.dy_sw, ocl_traj.dtrunk, ...
+    alpha_ref];
 
 alpha_ref_landing = pi - (2*landing_traj.simout(:,1)+landing_traj.simout(:,2))/2;
 landing_ref = [landing_traj.time, landing_traj.simout, alpha_ref_landing];
+
+task_space_ref = [ocl_traj.time, ...
+    ocl_traj.xG, ocl_traj.yG, ocl_traj.x_sw, ocl_traj.y_sw, ocl_traj.trunk, ...
+    ocl_traj.dxG, ocl_traj.dyG, ocl_traj.dx_sw, ocl_traj.dy_sw, ocl_traj.dtrunk, ...
+    alpha_ref];
+
+task_space_landing_ref = [landing_traj.time, ...
+    landing_traj.xG, landing_traj.yG, landing_traj.x_sw, landing_traj.y_sw, landing_traj.trunk, ...
+    landing_traj.dxG, landing_traj.dyG, landing_traj.dx_sw, landing_traj.dy_sw, landing_traj.dtrunk, ...
+    alpha_ref_landing];
 
 %% Set the uneven_terrain BUS
 uneven_terrain_bus_info = Simulink.Bus.createObject(uneven_terrain);

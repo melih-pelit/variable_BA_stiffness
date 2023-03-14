@@ -10,6 +10,11 @@ close all
 
 load('OpenOCLTraj\BA_landing_traj_v12022-07-06-17-15'); % loads the landing_traj variable
 ocl_traj = landing_traj.ocl_traj;
+
+% calculate CoM and sw_foot trajectories form ocl_traj 
+% TODO: remove once switched to SLIP-SL
+
+
 %% uneven ground input
 
 terrain_name = 'terrain data\unevenground_v3_1.mat'; % single seed
@@ -77,7 +82,7 @@ switch simulation_type
         % select the uneven terrain difficulty, k=1 is flat terrain
         k = 1; % delta = (k-1)*0.001 m
         deltaY = 0.001;
-        [simout, inputTorque, des_theta_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k);
+        [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k);
         fprintf("Time(end) = " + num2str(time(end)) + "\n")
 end
 %% Trajectory Tracking Plots
@@ -85,10 +90,13 @@ end
 f_print = 0;
 time_start = 0;
 time_end = 2;
-trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end) % for unnamed conference 2023
+trackingPlots( ...
+    simout, inputTorque, des_theta_alpha, param, flag, time, f_print, ...
+    time_start, time_end, ...
+    des_com_sw_alpha)
 
 %% Animation
-f_animation = 1;
+f_animation = 0;
 if f_animation == 1
     f_video = 0; % flag for recording video
     f_pause = 0;

@@ -1,4 +1,6 @@
-function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end)
+function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end, des_com_sw_alpha)
+
+CoM = calculate_com_and_sw_foot_from_simout(simout, param, flag);
 
 % if time(end) > 5
 %     time_start = time(end) - 5;
@@ -11,6 +13,7 @@ function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, 
 % time_start = 9;
 % time_end = 10;
 
+%% Joint Angle Plots
 figure
 
 lineW_ref = 1.2;
@@ -58,92 +61,65 @@ for i = 1:5
     end
 end
 
+%% CoM and Swing Foot plots
 
+figure
 
-% subplot(5,1,1);
-% plot(time, simout(:,1), '.', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-% plot(time, des_theta_alpha(:,1), 'k--', 'LineWidth', lineW_ref);
-% % plot(time, flag(:,1))
-% % grid on;
-% xlim([time_start,time_end])
-% set(gca, 'XTickLabel', [])
-% 
-% subplot(5,1,2);
-% plot(time, simout(:,2), '.', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-% plot(time, des_theta_alpha(:,2), 'k--', 'LineWidth', lineW_ref);
-% % plot(time, flag(:,1))
-% % grid on;
-% xlim([time_start,time_end])
-% set(gca, 'XTickLabel', [])
-% 
-% subplot(5,1,3);
-% plot(time, simout(:,3), '.', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-% plot(time, des_theta_alpha(:,3), 'k--', 'LineWidth', lineW_ref);
-% % plot(time, flag(:,1));
-% % grid on;
-% xlim([time_start,time_end])
-% set(gca, 'XTickLabel', [])
-% 
-% subplot(5,1,4);
-% plot(time, simout(:,4), '.', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-% plot(time, des_theta_alpha(:,4), 'k--', 'LineWidth', lineW_ref);
-% % plot(time, flag(:,1))
-% % grid on;
-% xlim([time_start,time_end])
-% set(gca, 'XTickLabel', [])
-% 
-% subplot(5,1,5);
-% plot(time, simout(:,5), '.', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-% plot(time, des_theta_alpha(:,5), 'k--', 'LineWidth', lineW_ref);
-% % plot(time, flag(:,1)) 
-% % grid on;
-% xlim([time_start,time_end])
+lineW_ref = 1.2;
+lineW = 1.7;
+marker_size = 7;
 
+y_limit_plus_rad = 0.02;
 
-% figure
-% 
-% subplot(2,6,1:2);
-% plot(time, des_theta_alpha(:,6), 'LineWidth', lineW); hold on;
-% plot(time, simout(:,6), 'LineWidth', lineW); title('dth_1');
-% % plot(time, flag(:,1))
-% grid on;
-% xlim([time_start,time_end])
-% 
-% subplot(2,6,3:4);
-% plot(time, des_theta_alpha(:,7), 'LineWidth', lineW); hold on;
-% plot(time, simout(:,7), 'LineWidth', lineW); title('dth_2');
-% % plot(time, flag(:,1))
-% grid on;
-% xlim([time_start,time_end])
-% 
-% subplot(2,6,5:6);
-% plot(time, des_theta_alpha(:,8), 'LineWidth', lineW); hold on;
-% plot(time, simout(:,8), 'LineWidth', lineW); title('dth3');
-% % plot(time, flag(:,1));
-% grid on;
-% xlim([time_start,time_end])
-% 
-% subplot(2,6,8:9);
-% plot(time, des_theta_alpha(:,9), 'LineWidth', lineW); hold on;
-% plot(time, simout(:,9), 'LineWidth', lineW); title('dth_4');
-% % plot(time, flag(:,1))
-% grid on;
-% xlim([time_start,time_end])
-% 
-% subplot(2,6,10:11);
-% % plot(time, pi/2*ones(length(time),1)); hold on;
-% plot(time, des_theta_alpha(:,10), 'LineWidth', lineW); hold on;
-% plot(time, simout(:,10), 'LineWidth', lineW); title('dth_5');
-% % plot(time, flag(:,1))
-% title('th_5'); grid on;
-% xlim([time_start,time_end])
-% 
-% figure
-% plot(time, inputTorques, 'LineWidth', lineW)
-% hold on
-% grid on
-% % plot(time, 150*flag(:,1))
-% xlim([time_start,time_end])
+color = [0.8500, 0.3250, 0.0980];
 
+y_labels = {'$x_{CoM}$ [m]'; '$y_{CoM}$ [m]'; '$\dot{x}_{CoM}$ [m/s]'; '$\dot{y}_{CoM}$ [m/s]'};
 
+label_font_size = 14;
+
+% des_com_sw_alpha = [
+%     xG_des_alpha; yG_des_alpha; x_sw_des_alpha; y_sw_des_alpha; trunk_des_alpha;
+%     dxG_des_alpha; dyG_des_alpha; dx_sw_des_alpha; dy_sw_des_alpha; dtrunk_des_alpha;
+%     flag_landing];
+
+i_to_des_com_sw_alpha_index = [1, 2, 6, 7];
+
+for i = 1:4
+    subplot(4, 1, i);
+    plot(time, CoM(:,i), '.-', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
+    plot(time, des_com_sw_alpha(:,i_to_des_com_sw_alpha_index(i)), 'k:', 'LineWidth', lineW_ref);
+    xlim([time_start,time_end])
+    
+    index_time_start = find(time == time_start);
+    index_time_end = find(time == time_end);
+    
+    ylim([min(CoM(index_time_start:index_time_end,i)) - y_limit_plus_rad, max(CoM(index_time_start:index_time_end,i)) + y_limit_plus_rad])
+    ylabel(y_labels(i, :), 'Interpreter', 'latex','FontSize',label_font_size)
+    
+    if i ~= 5
+        set(gca, 'XTickLabel', [])
+    else
+        xlabel('Time [sec]', 'Interpreter', 'latex','FontSize',label_font_size)
+        hYLabel = get(gca,'YLabel');
+        fig_size = 550;
+        set(gcf,'position',[0,0,fig_size*0.9,fig_size])
+        leg1 = legend('$\theta_i$', '$\theta_i^*$');
+        set(leg1,'Interpreter','latex');
+        set(leg1,'FontSize',label_font_size);
+    end
+    
+    if f_print == 1
+    set(gcf, 'color', 'none');
+    set(gca, 'color', 'none');
+        if i == 5
+            print(gcf,'trajectory_tracking_plots.png','-dpng','-r300');
+        end
+    end
+end
+end
+
+function CoM = calculate_com_and_sw_foot_from_simout(simout, param, flag)
+for i = 1:length(simout)
+    CoM(i, :) = calculate_com(simout(i,:), param, flag(i,:), [0; 0; 0; 0; 0]);
+end
 end
