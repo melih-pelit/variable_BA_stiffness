@@ -38,7 +38,8 @@ I3 = I1;
 I4 = I2;
 
 %%
-x_st = flag(2);
+% x_st = flag(2);
+x_st = 0;
 y_st = flag(7);
 
 %%

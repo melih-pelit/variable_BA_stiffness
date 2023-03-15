@@ -1,4 +1,4 @@
-function [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
+function [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, decoder_output, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
 
 %%
 ocl_traj = landing_traj.ocl_traj;

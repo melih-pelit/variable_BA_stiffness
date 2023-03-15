@@ -1,4 +1,4 @@
-function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end, des_com_sw_alpha)
+function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end, des_com_sw_alpha, decoder_output)
 
 [CoM, X_task_calculated] = calculate_com_and_sw_foot_from_simout(simout, param, flag);
 
@@ -31,7 +31,7 @@ label_font_size = 14;
 for i = 1:5
     subplot(5, 1, i);
     plot(time, simout(:,i), '.-', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
-    plot(time, des_theta_alpha(:,i), 'k:', 'LineWidth', lineW_ref);
+    plot(time, decoder_output(:,i), 'k:', 'LineWidth', lineW_ref);
     xlim([time_start,time_end])
     
     index_time_start = find(time == time_start);
@@ -60,6 +60,45 @@ for i = 1:5
         end
     end
 end
+
+%% Joint velocity plots
+figure
+
+y_labels = ['$\dot{\theta}_1$ [rad]'; '$\dot{\theta}_2$ [rad]'; '$\dot{\theta}_3$ [rad]'; '$\dot{\theta}_4$ [rad]'; '$\dot{\theta}_5$ [rad]'];
+
+for i = 1:5
+    subplot(5, 1, i);
+    plot(time, simout(:,i + 5), '.-', 'MarkerSize', marker_size, 'Color', color, 'LineWidth', lineW); hold on;
+    plot(time, decoder_output(:,i + 5), 'k:', 'LineWidth', lineW_ref);
+    xlim([time_start,time_end])
+    
+    index_time_start = find(time == time_start);
+    index_time_end = find(time == time_end);
+    
+    ylim([min(simout(index_time_start:index_time_end,i + 5)) - y_limit_plus_rad, max(simout(index_time_start:index_time_end,i + 5)) + y_limit_plus_rad])
+    ylabel(y_labels(i, :), 'Interpreter', 'latex','FontSize',label_font_size)
+    
+    if i ~= 5
+        set(gca, 'XTickLabel', [])
+    else
+        xlabel('Time [sec]', 'Interpreter', 'latex','FontSize',label_font_size)
+        hYLabel = get(gca,'YLabel');
+        fig_size = 550;
+        set(gcf,'position',[0,0,fig_size*0.9,fig_size])
+        leg1 = legend('$\theta_i$', '$\theta_i^*$');
+        set(leg1,'Interpreter','latex');
+        set(leg1,'FontSize',label_font_size);
+    end
+    
+    if f_print == 1
+    set(gcf, 'color', 'none');
+    set(gca, 'color', 'none');
+        if i == 5
+            print(gcf,'trajectory_tracking_plots.png','-dpng','-r300');
+        end
+    end
+end
+
 
 %% CoM and Swing Foot plots
 
@@ -163,6 +202,6 @@ for i = 1:length(simout)
     CoM(i, :) = calculate_com(simout(i,:), param, flag(i,:), [0; 0; 0; 0; 0]);
     [x_sw, y_sw, dx_sw, dy_sw] = calculate_sw_foot(simout(i,:), param, flag(i,:));
 
-    X_task_calculated(i, :) = [CoM(i, 1:4), x_sw - flag(i,2), y_sw, dx_sw, dy_sw];
+    X_task_calculated(i, :) = [CoM(i, 1:4), x_sw, y_sw, dx_sw, dy_sw];
 end
 end
