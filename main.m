@@ -78,7 +78,7 @@ switch simulation_type
         % select the uneven terrain difficulty, k=1 is flat terrain
         k = 1; % delta = (k-1)*0.001 m
         deltaY = 0.001;
-        [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, decoder_output, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k);
+        [simout, inputTorque, des_com_sw_alpha, decoder_output, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k);
         fprintf("Time(end) = " + num2str(time(end)) + "\n")
 end
 %% Trajectory Tracking Plots
@@ -87,7 +87,7 @@ f_print = 0;
 time_start = 0;
 time_end = 2;
 trackingPlots( ...
-    simout, inputTorque, des_theta_alpha, param, flag, time, f_print, ...
+    simout, inputTorque, param, flag, time, f_print, ...
     time_start, time_end, ...
     des_com_sw_alpha, decoder_output)
 

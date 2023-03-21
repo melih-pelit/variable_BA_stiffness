@@ -1,14 +1,10 @@
-function [simout, inputTorque, des_theta_alpha, des_com_sw_alpha, decoder_output, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
+function [simout, inputTorque, des_com_sw_alpha, decoder_output, flag, time] = run_walking_simulation(landing_traj, uneven_terrain, params, Tf, gains, k)
 
 %%
 ocl_traj = landing_traj.ocl_traj;
 
 alpha_ref = pi - (2*ocl_traj.simout(:,1)+ocl_traj.simout(:,2))/2;
-[step_alpha_ref, step_inputs_ref] = calc_step_input_ref(ocl_traj);
 
-% inputs_ref = ocl_traj.inputTorques;
-inputs_ref = [step_alpha_ref, step_inputs_ref];
-joint_angles_ref = [ocl_traj.time, ocl_traj.simout, alpha_ref];
 task_space_ref = [ocl_traj.time, ...
     ocl_traj.xG, ocl_traj.yG, ocl_traj.x_sw, ocl_traj.y_sw, ocl_traj.trunk, ...
     ocl_traj.dxG, ocl_traj.dyG, ocl_traj.dx_sw, ocl_traj.dy_sw, ocl_traj.dtrunk, ...

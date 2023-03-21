@@ -1,4 +1,4 @@
-function trackingPlots(simout, inputTorque, des_theta_alpha, param, flag, time, f_print, time_start, time_end, des_com_sw_alpha, decoder_output)
+function trackingPlots(simout, inputTorque, param, flag, time, f_print, time_start, time_end, des_com_sw_alpha, decoder_output)
 
 [CoM, X_task_calculated] = calculate_com_and_sw_foot_from_simout(simout, param, flag);
 
