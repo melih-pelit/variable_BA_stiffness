@@ -137,13 +137,9 @@ end
 %% Animation
 
 f_video = 0;
-f_pause = 0;
+f_pause = 1;
 
-simout = [sol.states.th1.value; sol.states.th2.value; sol.states.th3.value; sol.states.th4.value; sol.states.th5.value; sol.states.dth1.value; sol.states.dth2.value; sol.states.dth3.value; sol.states.dth4.value; sol.states.dth5.value]';
-u = [sol.controls.u2.value; sol.controls.u3.value; sol.controls.u4.value; sol.controls.u5.value]';
-time = sol.states.time.value;
-
-animation(f_video, simout, time, param, f_pause)
+animation(f_video, sol, f_pause)
 
 %% figures
 % figures1(simout, des_z_dz_dx, CoM_acc, sw_ft_pos, sw_ft_des, flag, time)
@@ -467,19 +463,19 @@ y_sw = p.l1*sin(x.th1) + p.l2*sin(x.th1+x.th2) + p.l2*sin(x.th1+x.th2+x.th3) + p
      dth4_after = dq_after(4);
      dth5_after = dq_after(5);
           
-     % initial angles should be the same for cyclic walking
-     ch.add(norm( (x.th1 + x.th2 + x.th3 + x.th4 - pi) - p.th1_I)^2);
-     ch.add(norm( (-x.th4 + 2*pi) - p.th2_I)^2);
-     ch.add(norm( (-x.th3 - 2*pi) - p.th3_I)^2);
-     ch.add(norm( (-x.th2 + 2*pi) - p.th4_I)^2);
-     ch.add(norm( (x.th5 - x.th3 + pi - 2*pi) - p.th5_I)^2);
-     
-     % initial and final velocities should be the same
-     ch.add(norm( (dth1_after + dth2_after + dth3_after + dth4_after) - p.dth1_I)^2);
-     ch.add(norm( (-dth4_after) - p.dth2_I)^2);
-     ch.add(norm( (-dth3_after) - p.dth3_I)^2);
-     ch.add(norm( (-dth2_after) - p.dth4_I)^2);
-     ch.add(norm( (dth5_after - dth3_after) - p.dth5_I)^2);
+%      % initial angles should be the same for cyclic walking
+%      ch.add(norm( (x.th1 + x.th2 + x.th3 + x.th4 - pi) - p.th1_I)^2);
+%      ch.add(norm( (-x.th4 + 2*pi) - p.th2_I)^2);
+%      ch.add(norm( (-x.th3 - 2*pi) - p.th3_I)^2);
+%      ch.add(norm( (-x.th2 + 2*pi) - p.th4_I)^2);
+%      ch.add(norm( (x.th5 - x.th3 + pi - 2*pi) - p.th5_I)^2);
+%      
+%      % initial and final velocities should be the same
+%      ch.add(norm( (dth1_after + dth2_after + dth3_after + dth4_after) - p.dth1_I)^2);
+%      ch.add(norm( (-dth4_after) - p.dth2_I)^2);
+%      ch.add(norm( (-dth3_after) - p.dth3_I)^2);
+%      ch.add(norm( (-dth2_after) - p.dth4_I)^2);
+%      ch.add(norm( (dth5_after - dth3_after) - p.dth5_I)^2);
      
      %%%%%----------------------------%%%%%
  else
