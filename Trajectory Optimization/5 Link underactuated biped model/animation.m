@@ -77,7 +77,7 @@ for j = 1:length(sol)
         %     xlim([-2 + P_hip(1), 2 + P_hip(1)])
         xlim([-1 + P_hip(1), 1 + P_hip(1)])
         ylim([-0.5, 1.7])
-        title(['t = ' num2str(time(i))])
+        title(['t = ' num2str(time(i)) ', Phase = ' num2str(j) ' i = ' num2str(i)])
         grid on
         hold on
         plot(V_links1(1,:),V_links1(2,:), 'r', 'LineWidth', 2);
