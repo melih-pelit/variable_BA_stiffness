@@ -37,7 +37,7 @@ for i = 1:5
     index_time_start = find(time == time_start);
     index_time_end = find(time == time_end);
     
-    ylim([min(simout(index_time_start:index_time_end,i)) - y_limit_plus_rad, max(simout(index_time_start:index_time_end,i)) + y_limit_plus_rad])
+%     ylim([min(simout(index_time_start:index_time_end,i)) - y_limit_plus_rad, max(simout(index_time_start:index_time_end,i)) + y_limit_plus_rad])
     ylabel(y_labels(i, :), 'Interpreter', 'latex','FontSize',label_font_size)
     
     if i ~= 5

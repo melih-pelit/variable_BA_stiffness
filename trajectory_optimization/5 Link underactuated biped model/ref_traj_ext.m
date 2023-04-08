@@ -1,12 +1,10 @@
 % 2021.01.18 Extracting the OpenOCL trajectrory as reference trajectory
 % Mustafa Melih Pelit
 
-function [ocl_traj] = ref_traj_ext(sol)
+function [ocl_traj] = ref_traj_ext(filename)
 
 % loading the OpenOCL solution
-% load('OpenOCLTraj\5LinkWalkingOpenOCL2021-01-16-17-54') % with updated v.o.
-% load('OpenOCLTraj\5LinkWalkingOpenOCL2021-01-19-21-19') % with th2 >= 5
-% load('OpenOCLTraj\5LinkWalkingOpenOCL2021-01-21-15-10') % with 80<torso<90
+load("results\" + filename)
 
 %%%%% Constant Parameters %%%%%
 m1 = mean(sol{1}.parameters.m1.value); % mass of link 1 [kg]
@@ -178,6 +176,7 @@ for j = 1:length(sol)
 
         ocl_traj.ds.simout = simout;
     end
+    ocl_traj.result_filename = filename;
 
     clear th1 th2 th3 th4 th5 dth1 dth2 dth3 dth4 dth5
     clear x_G y_G dx_G dy_G

@@ -8,8 +8,9 @@ close all
 
 %% Reference OpenOCL traj
 
-load('OpenOCLTraj\BA_landing_traj_v12022-07-06-17-15'); % loads the landing_traj variable
-ocl_traj = landing_traj.ocl_traj;
+% load('OpenOCLTraj\BA_landing_traj_v12022-07-06-17-15'); % loads the landing_traj variable
+load('OpenOCLTraj\ocl_5link_traj2023-04-05-22-25.mat')
+% ocl_traj = landing_traj.ocl_traj;
 
 %% uneven ground input
 
