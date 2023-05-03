@@ -1,6 +1,6 @@
 function trackingPlots_jointAngles(simout, flag, time, des_th)
 
-x_start = 5;
+x_start = 0;
 x_end = 15;
 
 figure()

@@ -1,4 +1,6 @@
-function [q0, dq0] = calculate_init_pos_v2(x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, dx_CoM_des, dz_CoM_des, des_x_sw, des_z_sw, param)
+function [q0, dq0] = calculate_init_pos_v2( ...
+    x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, dx_CoM_des, dz_CoM_des, ...
+    des_x_sw, des_z_sw, param, alpha0)
 % 09.08.2018 - modified for fully actuated model
 % 2020.11.24 - due to the different morphology between the SLIP-SL and 5
 % linked model, it is not possible to exactly match the initial conditions
@@ -55,9 +57,10 @@ A = [ 1  0  0 0 0;
       1  1  1 0 0;
      -1 -1 -1 0 0;
       1  1  0 0 1;
-     -1 -1  0 0 -1];
+     -1 -1  0 0 -1;
+      2  1  0 0 0];
 
-b = [pi/2; 0; pi; 0; 2*pi; -pi*1.5; pi/2; 0];
+b = [pi/2; 0; pi; 0; 2*pi; -pi*1.5; pi/2; 0; 2*pi - 2*alpha0];
 Aeq = [];
 beq = [];
 lb = [];

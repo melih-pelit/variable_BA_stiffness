@@ -1,4 +1,4 @@
-function draw_robot(X,param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des)
+function draw_robot(X,param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, flag)
 
 %% parameters
 
@@ -29,7 +29,17 @@ th3 = X(3);
 th4 = X(4);
 th5 = X(5);
 
-x1 = 0;
+%% Flags
+f_SS = flag(1); % indicates which stance phase it is
+foot = flag(2); % location of the stance foot
+foot_prev = flag(3); % previous location of the stance foot
+
+t_mode_change = flag(4); % time stamp when the mode change happens (TD or LO)
+
+x_LO = flag(5); % lift off location of CoM when it happened
+alpha_mode_change = flag(7); % lift off location of CoM when it happened
+
+x1 = foot;
 z1 = 0;
 
 %% 各点の位置?ﾀ標

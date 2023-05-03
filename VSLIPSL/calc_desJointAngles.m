@@ -1,4 +1,4 @@
-    function [des_th, time_elapsed] = calc_desJointAngles(X_curr, des_traj, flag, param, flag_des)
+function [des_th, time_elapsed] = calc_desJointAngles(X_curr, des_traj, flag, param, flag_des)
 
 % 2021.07.22 - Function to calculate desired joint angles from the desired
 % CoM and swing foot positions

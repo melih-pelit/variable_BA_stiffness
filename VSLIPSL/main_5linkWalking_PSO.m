@@ -1,6 +1,6 @@
 %% five_link_walking_sim
 tic
-clear all
+clear
 close all
 
 %% SLIP Data
@@ -47,6 +47,10 @@ ref_star_ds = [ref_star.ds.x_CoM_star, ...
     ref_star.ds.del_y_CoM_star, ref_star.ds.del_dx_CoM_star, ...
     ref_star.ds.del2_y_CoM_star];
 
+%% alpha_ref
+alpha_ss_ref = pi - atan2(ref_star.dc.ss.y_CoM, ref_star.dc.ss.x_CoM);
+alpha_ds_ref = pi - atan2(ref_star.dc.ds.y_CoM, ref_star.dc.ds.x_CoM);
+
 %%
 sample_time = 0.001;
 
@@ -73,20 +77,91 @@ params.I3 = params.I1;
 params.I4 = params.I2;
 params.I5 = params.m5*params.l5^2/12;
 
-param = [params.m1; params.m2; params.m5; params.l1; params.l2; params.l5; params.g; params.I1; params.I2; params.I5];
+params.r = 1.6; % dimensionless lever arm ratio (found from optimizing wrt SR) r = r_h / r_k
+params.k_bar_ba = 200; % [Nm] k_bar_ba = k_ba * r_k^2
+
+params.r_k = 0.02; % [m] we choose this value and rest of the parameters are defined according to it and r, k_bar_ba
+params.r_h = params.r*params.r_k; % [m]
+% params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
+params.k_ba = 0; % [N/m]
+params.phi_h0 = pi; % [rad] free angle of springs at hip
+params.phi_k0 = pi; % [rad] free angle of springs at knee
+
+param = [params.m1; params.m2; params.m5; params.l1; params.l2; params.l5; params.g; params.I1; params.I2; params.I5; params.r_k; params.r_h; params.k_ba; params.phi_h0; params.phi_k0];
+
+%% generate discrete alpha
+
+% for single stance phase
+% figure()
+for N=1:length(slipsl.time_ss)
+
+    x_CoM_des = slipsl.x_ss(N);
+    z_CoM_des = slipsl.y_ss(N);
+    x_sw_des = swFootSLIPSL.x(N);
+    z_sw_des = swFootSLIPSL.z(N);
+    dx_CoM_des = slipsl.dx_ss(N);
+    dz_CoM_des = slipsl.dy_ss(N);
+    des_dx_sw = swFootSLIPSL.dx(N);
+    des_dz_sw = swFootSLIPSL.dz(N);
+
+    init_flag = [1; 0; -dc.col_param.footPlus; -slipsl.time_ss(N); slipsl.x_ss(1); slipsl.y_ss(1); alpha_ss_ref(1)];
+    des_traj_alpha = [
+    x_CoM_des; z_CoM_des; x_sw_des; z_sw_des;
+    dx_CoM_des; dz_CoM_des; des_dx_sw; des_dz_sw];
+    [des_th, decoder_time_elapsed] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 1);
+%     draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag)
+
+    alpha_ss_ref_discrete(N,1) = pi - (2*des_th(1) + des_th(2))/2;
+
+%     pause
+end
+
+%%
+% for double stance phase
+% figure()
+for N=1:length(slipsl.time_ds)
+
+    x_CoM_des = slipsl.x_ds(N);
+    z_CoM_des = slipsl.y_ds(N);
+    x_sw_des = -swFootSLIPSL.x(end);
+    z_sw_des = 0;
+    dx_CoM_des = slipsl.dx_ds(N);
+    dz_CoM_des = slipsl.dy_ds(N);
+    des_dx_sw = 0;
+    des_dz_sw = 0;
+
+    init_flag = [2; dc.col_param.footPlus; 0; -slipsl.time_ss(N); slipsl.x_ss(1); slipsl.y_ss(1); alpha_ss_ref(1)];
+    des_traj_alpha = [
+    x_CoM_des; z_CoM_des; x_sw_des; z_sw_des;
+    dx_CoM_des; dz_CoM_des; des_dx_sw; des_dz_sw];
+    [des_th, decoder_time_elapsed] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 2);
+%     draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag);
+
+    alpha_ds_ref_discrete(N,1) = pi - (2*des_th(1) + des_th(2))/2;
+
+%     pause
+end
 
 %% Getting the ground reaction forces equation
 
-slipslTraj_ss = [ref_star.dc.ss.time, ref_star.dc.ss.x_CoM', ref_star.dc.ss.y_CoM', ref_star.dc.ss.dx_CoM', ref_star.dc.ss.dy_CoM'];
-slipslTraj_ds = [ref_star.dc.ds.time - ref_star.dc.ds.time(1), ref_star.dc.ds.x_CoM, ref_star.dc.ds.y_CoM, ref_star.dc.ds.dx_CoM, ref_star.dc.ds.dy_CoM];
+% slipslTraj_ss = [ref_star.dc.ss.time, ref_star.dc.ss.x_CoM', ref_star.dc.ss.y_CoM', ref_star.dc.ss.dx_CoM', ref_star.dc.ss.dy_CoM', alpha_ss_ref'];
+% slipslTraj_ds = [ref_star.dc.ds.time - ref_star.dc.ds.time(1), ref_star.dc.ds.x_CoM, ref_star.dc.ds.y_CoM, ref_star.dc.ds.dx_CoM, ref_star.dc.ds.dy_CoM, alpha_ds_ref];
+% 
+% swFootTraj = [ref_star.dc.ss.x_CoM', ref_star.dc.ss.x_sw', ref_star.dc.ss.y_sw', ref_star.dc.ss.dx_sw', ref_star.dc.ss.dy_sw']; % swing foot reference trajectory
 
-swFootTraj = [ref_star.dc.ss.x_CoM', ref_star.dc.ss.x_sw', ref_star.dc.ss.y_sw', ref_star.dc.ss.dx_sw', ref_star.dc.ss.dy_sw']; % swing foot reference trajectory
+% alpha_ss_ref_discrete = zeros(size(slipsl.time_ss));
+% alpha_ds_ref_discrete = zeros(size(slipsl.time_ds));
+
+slipslTraj_ss = [slipsl.time_ss, slipsl.x_ss, slipsl.y_ss, slipsl.dx_ss, slipsl.dy_ss, alpha_ss_ref_discrete];
+slipslTraj_ds = [slipsl.time_ds, slipsl.x_ds, slipsl.y_ds, slipsl.dx_ds, slipsl.dy_ds, alpha_ds_ref_discrete];
+
+swFootTraj = [swFootSLIPSL.x_CoM, swFootSLIPSL.x, swFootSLIPSL.z, swFootSLIPSL.dx, swFootSLIPSL.dz]; % swing foot reference trajectory
 
 %% Calculate Link Lengths
 [q0, link_lengths] = calculate_optimal_link_lengths(dc, param)
 
 %% Initial conditions
-N = 1; % starting collocation point
+N = 2; % starting collocation point
 % N = dc.N_ss + 1;
 x_CoM_des = slipsl.x_ss(N);
 z_CoM_des = slipsl.y_ss(N);
@@ -96,22 +171,20 @@ dx_CoM_des = slipsl.dx_ss(N);
 dz_CoM_des = slipsl.dy_ss(N);
 des_dx_sw = swFootSLIPSL.dx(N);
 des_dz_sw = swFootSLIPSL.dz(N);
-% [q0, dq0] = calculate_init_pos(x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, dx_CoM_des, dz_CoM_des, des_dx_sw, des_dz_sw, param);
-[q0, dq0] = calculate_init_pos_v2(x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, dx_CoM_des, dz_CoM_des, des_dx_sw, des_dz_sw, param);
-clear x_CoM_des z_CoM_des x_sw_des z_sw_des dx_CoM_des dz_CoM_des des_dx_sw des_dz_sw
 
-X = [q0; dq0];
-
-Initial_state = [q0;dq0];
-
-%% init flag
-close
-% CoM = calculate_com(X, param, foot, ddq);
-CoM = calculate_com(X, param, 0, [0;0;0;0;0]);
-init_flag = [1; 0; -dc.col_param.footPlus; 0; CoM(1); CoM(2)];
+init_flag = [1; 0; -dc.col_param.footPlus; -slipsl.time_ss(N); slipsl.x_ss(1); slipsl.y_ss(1); alpha_ss_ref(1)];
 clear CoM
+des_traj_alpha = [
+    x_CoM_des; z_CoM_des; x_sw_des; z_sw_des;
+    dx_CoM_des; dz_CoM_des; des_dx_sw; des_dz_sw];
+[des_th, decoder_time_elapsed] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 1);
+% draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag)
+q0 = des_th(1:5, 1);
+dq0 = des_th(6:end, 1);
 
+Initial_state = [q0;dq0]; % For Simulink integrator with external reset
 %% VSLIPSL Controller gains and ref trajectories
+close
 % Controller Gains
 gain_VSLIPSL.K_p = 200;
 gain_VSLIPSL.K_d = 40;
@@ -136,213 +209,27 @@ f_record = 0; % choose whether pBestMemo should be saved automatically
 f_dist = [0; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
 
 Tf = 15; % simulation finish time [secs]
+%%
+gains = [
+    835, 100, ...
+    370, 60, ...
+    444, 110, ...
+    550, 310, ...
+    375, 140];
 
-for k = 1:repeat_step
-    display(k)
-    
-    %% create initial particles
-    % if I have reset the pBest file, I should set f_reset = 1
-    [ptc, pBest, pBestPtc, vel] = init_ptc(pNumber, f_reset);
-    load('pBest\pBestMemo.mat')
-    f_reset = 0; %
-    
-    %% Do the loop
-    
-    for i = 1:search_step
-        fprintf ('%.4f / %.4f', i, search_step)
-        for j = 1:pNumber
-            
-            gain.kP1 = ptc(j,1); % gain for total energy controller
-            gain.kP2 = ptc(j,2); % gain for total energy controller
-            gain.kP3 = ptc(j,3); % gain for total energy controller
-            gain.kP4 = ptc(j,4); % gain for total energy controller
-            gain.kP5 = ptc(j,5); % gain for total energy controller
-            
-            gain.kD1 = ptc(j,6); % gain for total energy controller
-            gain.kD2 = ptc(j,7); % gain for total energy controller
-            gain.kD3 = ptc(j,8); % gain for total energy controller
-            gain.kD4 = ptc(j,9); % gain for total energy controller
-            gain.kD5 = ptc(j,10); % gain for total energy controller
-            
-            gains = [gain.kP1, gain.kD1, gain.kP2, gain.kD2, gain.kP3, gain.kD3, gain.kP4, gain.kD4, gain.kP5, gain.kD5]; % gains vector
-            
-            % Run the simulation
-            gamma = 5;
-            
-            open_system('model_5LinkWalking')
-            sim('model_5LinkWalking')
-            
-            % Cost of Transport
-            dq = simout(:, 6:10); % joint velocities
-            power = abs(dq.*inputTorque);
-            energy = power.*sample_time;
-            distance = CoM_acc(end,1); % distance that CoM traveled
-            CoT = sum(sum(energy))/((params.m1 + params.m2 + params.m3 + params.m4 + params.m5)*params.g*distance);
-            
-            % trunk angle difference(pseudo limit cycle) ------------------
-            % PSO awards for keeping the runk angle close to the avergae
-            % value
-            trunk_angle = simout(:,1) + simout(:,2) + simout(:,5);
-            avgTrunk = mean(trunk_angle);
-            trunkAngleDiff = trunk_angle - avgTrunk;
-            totalTrunkAngleDiff = sum(abs(trunkAngleDiff*sample_time)); % area of difference between average trunk angle and trunk angle
-            %--------------------------------------------------------------
-            
-            % Area under the distance between VLO points
-            if time(end)>Tf -1
-                theta_P(:,1) = rt_VLO(1,1,:); % atan2(dz_CoM, dx_CoM)
-                z_P(:,1) = rt_VLO(1,2,:); % z_CoM position at VLO
-                E_CoM(:,1) = rt_VLO(1,4,:); % energy of CoM at VLO
-                %             VLOtimes = rt_VLO(1,5,:); % times when VLO happens
-                
-                vector_pc = [theta_P(2:end), z_P(2:end), E_CoM(2:end)] - [theta_P(1:end-1), z_P(1:end-1), E_CoM(1:end-1)]; % differences between consequent VLO points
-                vector_pc = [vector_pc(:,1)/mean(theta_P), vector_pc(:,2)/mean(z_P), vector_pc(:,3)/mean(E_CoM)]; % normalizing these difference with average values
-                vector_pc = abs(vector_pc);
-                %             dist = sqrt(vector_pc(:,1).^2 + vector_pc(:,2).^2 + vector_pc(:,3).^2);
-                
-                VLO_diff = sum(sum([(vector_pc(1:end-1, :) + vector_pc(2:end, :))/2]));
-                
-                % another method to calculate
-                mean_diff = sqrt(vector_pc(:,1).^2 + vector_pc(:,2).^2 + vector_pc(:,3).^2);
-                trapz_VLO_diff = trapz(1:length(mean_diff), mean_diff);
-                clear theta_P z_P E_CoM vector_pc
-            end
-            
-            % -----------------adding constraints to gain values-----------
-            % gain limits
-            gainLimits = [
-                0, 3000;
-                0, 2000;
-                0, 3000;
-                0, 2000;
-                0, 3000;
-                0, 2000;
-                0, 3000;
-                0, 2000;
-                0, 3000;
-                0, 2000];
-            
-            overLimit = ptc(j,:)' - gainLimits(:,2);
-            overLimit = max(0, overLimit);
-            
-            underLimit = min(0, ptc(j,:));
-            
-            if mean(overLimit) == 0 && mean(underLimit) == 0
-                % if all gain values are under limit
-                gainOverLim = 1;
-            elseif mean(overLimit) == 0
-                gainOverLim =sum(abs(underLimit));
-            elseif mean(underLimit) == 0
-                gainOverLim =sum(abs(overLimit));
-            else
-                % if at least 1 gain value is over limit
-                gainOverLim = sum(overLimit)*sum(abs(underLimit));
-            end
-            
-            % when -1<gainOverLim<1, it gets higher feasibility value
-            % because feasibility is divided by this value.
-            if gainOverLim < 1
-                gainOverLim = 100; % set gainOverlim to a large
-            end
-            %--------------------------------------------------------------
-            
-            %%%%%% testing the ZMP condition %%%%%%%%%%%%%%
-            
-            % get the ground reaction forces
-            % GRF(:,1) = F_x_GRF, GRF(:,2) = F_y_GRF
-            [ddq_GRF, GRF] = calc_GRF(time, simout, param, flag, inputTorque);
-            F_x = GRF(:,1); % Reaction forces at the ankle
-            F_y = GRF(:,2);
-            
-            % Calculating ZMP
-            m_foot = 1;
-            x_foot_CoM = 0.01;
-            F_y_GRF = -(-m_foot*params.g + -F_y);
-            x_ZMP = (-inputTorque(:,1) + x_foot_CoM*m_foot*params.g)./F_y_GRF;
-            
-            ZMP_fitness = max(abs(x_ZMP(10/sample_time:end)));
-            %============================================================%
-            
-            %%%%%% Adding tracking error term to the fitness value %%%%%%
-            y_err = des_z_dz_dx(:,2) - CoM_acc(:,2);
-            y_err = sum(abs(y_err(10/sample_time:end)));
-            
-            %dx_avg = mean(CoM_acc(10/sample_time:end, 3));
-            %dx_avg_slipsl = (dc.x_CoM(end) - dc.x_CoM(1))/dc.time(end);
-            %dx_err = abs(dx_avg_slipsl - dx_avg);
-            
-            dx_err = (des_z_dz_dx(:,3) - CoM_acc(:,3));
-            dx_err = sum(abs(dx_err(10/sample_time:end)));
-            %=============================================================%
-            
-            if time(end) >= Tf - 1
-                % fitness(j) = time(end)/(CoT) + time(end)/(CoT*totalTrunkAngleDiff*VLO_diff);
-                % fitness(j) = (time(end)+time(end)/(VLO_diff*max(abs(x_ZMP(10/sample_time:end)))))/(gainOverLim);
-                % fitness(j) = (time(end)+time(end)/(VLO_diff*ZMP_fitness*y_err*dx_err))/(gainOverLim);
-                % fitness(j) = (time(end)+time(end)/(trapz_VLO_diff*max(0.3, ZMP_fitness)*CoT))/(gainOverLim);
-                fitness(j) = (time(end)+time(end)/(max(1, trapz_VLO_diff)*max(0.3, ZMP_fitness)))/(gainOverLim);
-            else
-                fitness(j) = (time(end))/gainOverLim;
-                VLO_diff = 0; % if robot falls quickly
-                ZMP_fitness = 0;
-                y_err = 0;
-                dx_err = 0;
-            end
-            
-            display_str = ['PTC #: ', num2str(j), '/', num2str(pNumber), ', Fitness Value: ', num2str(fitness(j)),  ', Search Step: ', num2str(i), '/', num2str(search_step), ', Repeat Step: ', num2str(k), '/', num2str(repeat_step), ', pBest: ', num2str(pBest)] ;
-            display(display_str)
-            
-            if fitness(j) > pBest
-                pBest = fitness(j);
-                pBestPtc = ptc(j,:); % updating the best particle
-                %                  pBestPtcHist = [double(pBest), pBestPtc, step_no(end),CoT];
-                pBestPtcHist = [double(pBest), pBestPtc, time(end), CoT, totalTrunkAngleDiff, VLO_diff, gainOverLim, ZMP_fitness, y_err, dx_err];
-                sz = size(pBestMemo);
-                pBestMemo(sz(1)+1, :) = pBestPtcHist;
-                save('pBest\pBestMemo', 'pBestMemo')
-                
-                display(['Pbest: ', num2str(pBest)]);
-            end
-            
-            % check which particle performed the best
-            if j == 1 % set gBest to fitness value of the first particle
-                gBest = fitness(j);
-                gBestPtc = ptc(j,:); % updating the best particle
-            end
-            
-            if fitness(j) > gBest
-                gBest = fitness(j);
-                gBestPtc = ptc(j,:); % updating the best particle
-            end
-        end
-        
-        % Calculate the particle velocities and updating them
-        for j = 1:pNumber
-            % calculate velocity
-            c1 = 2.05;
-            c2 = c1;
-%             consFactor = 2/(2 - (c1 + c2) - sqrt((c1 + c2)^2+4*(c1 + c2))); % from paper called "A simple and efficient constrained particle swarm optimization and its application to engineering design problems"
-%             vel(j,:) = consFactor*(vel(j,:) + c1*rand()*(pBestPtc - ptc(j,:)) + c2*rand()*(gBestPtc - ptc(j,:)));
-            vel(j,:) = vel(j,:) + c1*rand()*(pBestPtc - ptc(j,:)) + c2*rand()*(gBestPtc - ptc(j,:));
-            
-            velLim = 100;
-            vel(j,:) = min(velLim, vel(j,:));
-            vel(j,:) = max(-velLim, vel(j,:));
-            
-            % update the particles
-            ptc(j,:) = vel(j,:) + ptc(j,:);
-        end
-    end
-    
-    %%
-    
-    if f_record == 1
-        filename = sprintf('pBestMemo%s.mat', datestr(now,'yyyy-mm-dd-HH-MM'));
-        subfolder = 'pBest';
-        save(fullfile(subfolder,filename),'pBestMemo')
-    end
-    
-end
+% gains = [
+%     835, 0, ...
+%     370, 0, ...
+%     444, 0, ...
+%     550, 0, ...
+%     375, 0];
+
+
+% Run the simulation
+gamma = 5;
+
+open_system('model_5LinkWalking')
+sim('model_5LinkWalking')
 
 %% Stability Analysis
 % figure_poincare(simout, param, flag(:,2), step_no, rt_VLO, time)
@@ -354,11 +241,11 @@ trackingPlots_jointAngles(simout, flag, time, des_th)
 %% Animation
 f_animation = 1;
 if f_animation == 1
-    f_video = 1; % flag for recrding video
-    f_pause = 0;
+    f_video = 0; % flag for recrding video
+    f_pause = 1;
     frame_leap = 20;
-    % animation(f_video, simout, sample_time, sw_ft_des, param, f_pause, frame_leap, flag, step_no, force, des_z_dz_dx)
-    animation(f_video, simout, sample_time, sw_ft_des, param, f_pause, frame_leap, flag, step_no, force, des_traj, slipslParams, des_th)
+    animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj, des_th);
+%     animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj_alpha, des_th);
 end
 %% Calculating ZMP
 

@@ -1,4 +1,4 @@
-function animation(f_video, simout, sample_time, sw_ft_des, param, f_pause, frame_leap, flag, step_no, force, des_traj, slipslParams, des_th)
+function animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj, des_th)
 pause
 if f_video == 1
     video_v = VideoWriter('5link_SLIP_walking.avi');
@@ -17,10 +17,10 @@ l5 = param(6);
 l3 = l2;
 l4 = l1;
 %%%%%%%%%%%
-start_sec = 8; % start second for the animation
+start_sec = sample_time; % start second for the animation
 end_sec = 12; % ending second for the animation
 
-figure(3)
+figure()
 nt = length(simout);
 axis equal
 
@@ -145,12 +145,12 @@ for i = start_sec/sample_time:frame_leap:end_sec/sample_time
     %-----------------------------------------------------------
     
     % plotting desired location of swing foot-------------------
-    plot(sw_ft_des(i, 1), sw_ft_des(i, 2), 'o', 'MarkerSize', 3, 'MarkerFaceColor', 'r');
+    plot(des_traj(i, 3), des_traj(i, 4), 'o', 'MarkerSize', 3, 'MarkerFaceColor', 'r');
     %-----------------------------------------------------------
     
     %---- plotting des CoM ------------------------------------
-    des_x_CoM = des_traj(i,9);
-    des_y_CoM = des_traj(i,10);
+    des_x_CoM = des_traj(i,1);
+    des_y_CoM = des_traj(i,2);
     plot(des_x_CoM, des_y_CoM, 'o', 'MarkerSize', 3, 'MarkerFaceColor', 'r');
     %----------------------------------------------------------
     
