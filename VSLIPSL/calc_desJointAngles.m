@@ -84,11 +84,11 @@ F_X = @(X) [
 
 X_des = fsolve(F_X,[X_curr(1),X_curr(2),X_curr(3),X_curr(4),X_curr(5)],optimoptions('fsolve','Algorithm', 'Levenberg-Marquardt'));
 
-th1_des = X_des(1);
-th2_des = X_des(2);
-th3_des = X_des(3);
-th4_des = X_des(4);
-th5_des = X_des(5);
+th1_des = wrapTo2Pi(X_des(1));
+th2_des = wrapTo2Pi(X_des(2));
+th3_des = wrapTo2Pi(X_des(3));
+th4_des = wrapTo2Pi(X_des(4));
+th5_des = wrapTo2Pi(X_des(5));
 
 F_dX = @(dX) [
         dx_CoM_des - (- (dX(3)*(m4*((l4*sin(th1_des + th2_des + th3_des + th4_des))/2 + l3*sin(th1_des + th2_des + th3_des)) + (l3*m3*sin(th1_des + th2_des + th3_des))/2))/(m1 + m2 + m3 + m4 + m5) - (dX(1)*(m3*(l2*sin(th1_des + th2_des) + l1*sin(th1_des) + (l3*sin(th1_des + th2_des + th3_des))/2) + m5*(l2*sin(th1_des + th2_des) + l1*sin(th1_des) + (l5*sin(th1_des + th2_des + th5_des))/2) + m2*((l2*sin(th1_des + th2_des))/2 + l1*sin(th1_des)) + m4*((l4*sin(th1_des + th2_des + th3_des + th4_des))/2 + l2*sin(th1_des + th2_des) + l1*sin(th1_des) + l3*sin(th1_des + th2_des + th3_des)) + (l1*m1*sin(th1_des))/2))/(m1 + m2 + m3 + m4 + m5) - (dX(2)*(m4*((l4*sin(th1_des + th2_des + th3_des + th4_des))/2 + l2*sin(th1_des + th2_des) + l3*sin(th1_des + th2_des + th3_des)) + m3*(l2*sin(th1_des + th2_des) + (l3*sin(th1_des + th2_des + th3_des))/2) + m5*(l2*sin(th1_des + th2_des) + (l5*sin(th1_des + th2_des + th5_des))/2) + (l2*m2*sin(th1_des + th2_des))/2))/(m1 + m2 + m3 + m4 + m5) - (dX(4)*l4*m4*sin(th1_des + th2_des + th3_des + th4_des))/(2*(m1 + m2 + m3 + m4 + m5)) - (dX(5)*l5*m5*sin(th1_des + th2_des + th5_des))/(2*(m1 + m2 + m3 + m4 + m5)));

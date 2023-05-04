@@ -18,7 +18,7 @@ l3 = l2;
 l4 = l1;
 %%%%%%%%%%%
 start_sec = sample_time; % start second for the animation
-end_sec = 12; % ending second for the animation
+end_sec = 15; % ending second for the animation
 
 figure()
 nt = length(simout);

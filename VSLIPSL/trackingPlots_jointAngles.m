@@ -1,7 +1,23 @@
 function trackingPlots_jointAngles(simout, flag, time, des_th)
 
+%% Calculations
+% detect state change
+flag_prev = flag(1,1);
+state_change_idx = [];
+for i = 2:length(flag(:,1))
+    flag_cur = flag(i,1);
+    if flag_cur ~= flag_prev
+        state_change_idx(end + 1) = i;
+    end
+    flag_prev = flag_cur;
+end
+
+% TODO: displace state change
+
+%% plotting
+
 x_start = 0;
-x_end = 15;
+x_end = time(end);
 
 figure()
 
