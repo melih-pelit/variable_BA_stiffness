@@ -93,6 +93,7 @@ param = [params.m1; params.m2; params.m5; params.l1; params.l2; params.l5; param
 
 % for single stance phase
 % figure()
+alpha_ss_ref_discrete = zeros(length(slipsl.time_ss), 1);
 for N=1:length(slipsl.time_ss)
 
     x_CoM_des = slipsl.x_ss(N);
@@ -108,17 +109,19 @@ for N=1:length(slipsl.time_ss)
     des_traj_alpha = [
     x_CoM_des; z_CoM_des; x_sw_des; z_sw_des;
     dx_CoM_des; dz_CoM_des; des_dx_sw; des_dz_sw];
-    [des_th, decoder_time_elapsed] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 1);
-%     draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag)
+    [des_th, ~] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 1);
+
+    % draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag)
+    % pause
 
     alpha_ss_ref_discrete(N,1) = pi - (2*des_th(1) + des_th(2))/2;
 
-%     pause
 end
 
 %%
 % for double stance phase
 % figure()
+alpha_ds_ref_discrete = zeros(length(slipsl.time_ds), 1);
 for N=1:length(slipsl.time_ds)
 
     x_CoM_des = slipsl.x_ds(N);
@@ -134,12 +137,12 @@ for N=1:length(slipsl.time_ds)
     des_traj_alpha = [
     x_CoM_des; z_CoM_des; x_sw_des; z_sw_des;
     dx_CoM_des; dz_CoM_des; des_dx_sw; des_dz_sw];
-    [des_th, decoder_time_elapsed] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 2);
-%     draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag);
+    [des_th, ~] = calc_desJointAngles(zeros(10,1), des_traj_alpha, init_flag, param, 2);
+    % draw_robot(des_th, param, x_CoM_des, z_CoM_des, x_sw_des, z_sw_des, init_flag);
+    % pause
 
     alpha_ds_ref_discrete(N,1) = pi - (2*des_th(1) + des_th(2))/2;
 
-%     pause
 end
 
 %% Getting the ground reaction forces equation
@@ -149,16 +152,14 @@ end
 % 
 % swFootTraj = [ref_star.dc.ss.x_CoM', ref_star.dc.ss.x_sw', ref_star.dc.ss.y_sw', ref_star.dc.ss.dx_sw', ref_star.dc.ss.dy_sw']; % swing foot reference trajectory
 
-% alpha_ss_ref_discrete = zeros(size(slipsl.time_ss));
-% alpha_ds_ref_discrete = zeros(size(slipsl.time_ds));
-
 slipslTraj_ss = [slipsl.time_ss, slipsl.x_ss, slipsl.y_ss, slipsl.dx_ss, slipsl.dy_ss, alpha_ss_ref_discrete];
 slipslTraj_ds = [slipsl.time_ds, slipsl.x_ds, slipsl.y_ds, slipsl.dx_ds, slipsl.dy_ds, alpha_ds_ref_discrete];
 
 swFootTraj = [swFootSLIPSL.x_CoM, swFootSLIPSL.x, swFootSLIPSL.z, swFootSLIPSL.dx, swFootSLIPSL.dz]; % swing foot reference trajectory
 
 %% Calculate Link Lengths
-[q0, link_lengths] = calculate_optimal_link_lengths(dc, param)
+[~, link_lengths] = calculate_optimal_link_lengths(dc, param);
+display(link_lengths)
 
 %% Initial conditions
 N = 2; % starting collocation point
@@ -210,15 +211,10 @@ f_dist = [0; -100; 0]; % flag for activating or deactivating the dist forces and
 
 Tf = 15; % simulation finish time [secs]
 %%
-% gains = [
-%     835, 100, ...
-%     370, 60, ...
-%     444, 110, ...
-%     550, 310, ...
-%     375, 140];
+
+% gains = [kPi, kDi, ...], i = [2, 3, 4, 5]
 
 gains = [
-    1000, 75, ...
     1000, 75, ...
     1000, 75, ...
     1000, 75, ...
@@ -243,51 +239,21 @@ if f_animation == 1
     f_video = 0; % flag for recrding video
     f_pause = 1;
     frame_leap = 20;
-    animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj_alpha, des_th);
+    animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj, des_th);
 %     animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj_alpha, des_th);
 end
-%% Calculating ZMP
-
-% get the ground reaction forces
-% GRF(:,1) = F_x_GRF, GRF(:,2) = F_y_GRF
-[ddq_GRF, GRF, U_test] = calc_GRF(time, simout, param, flag, inputTorque);
-lambda_GRF_x = GRF(:,1); % Reaction forces at the ankle
-lambda_GRF_y = GRF(:,2);
-
-m_foot = 2;
-x_foot_CoM = 0.1;
-F_y_GRF = -(-m_foot*params.g + -lambda_GRF_y);
-x_ZMP = (inputTorque(:,1) + x_foot_CoM*m_foot*params.g)./F_y_GRF;
-
-% x_ZMP_new = (inputTorque(:,1) + x_foot_CoM*m_foot*params.g) ./ (F_y_GRF - m_foot*params.g);
-
-medfiltX_ZMP = medfilt1(x_ZMP,20);
-
-figure()
-plot(time, medfiltX_ZMP)
-% plot(time, x_ZMP)
-hold on
-
-plot(time, 0.3*flag(:,1))
-grid on
-ylabel('x_{ZMP} [m]')
-xlim([5,15])
-
-max_x_ZMP = max(medfiltX_ZMP(5/sample_time:end))
-min_x_ZMP = min(medfiltX_ZMP(5/sample_time:end))
-
-% plot(time, x_ZMP_new)
-% plot(time, medfiltLoopVoltage)
-toc
-
 %% encoder-decoder elapsed time
 
 encoder_time_elapsed = encoder_time_elapsed(~isnan(encoder_time_elapsed));
-mean_encoder__time = mean(encoder_time_elapsed)
-max_encoder__time = max(encoder_time_elapsed)
+mean_encoder__time = mean(encoder_time_elapsed);
+max_encoder__time = max(encoder_time_elapsed);
+display(mean_encoder__time)
+display(max_encoder__time)
 
-mean_decoder_time = mean(decoder_time_elapsed)
-max_decoder_time_elapsed = max(decoder_time_elapsed)
+mean_decoder_time = mean(decoder_time_elapsed);
+max_decoder_time_elapsed = max(decoder_time_elapsed);
+display(mean_decoder_time)
+display(max_encoder__time)
 
 
 %%
@@ -298,9 +264,9 @@ m_M = dc.const_param.m_M;
 m_swLeg = dc.const_param.m_swLeg;
 m_swFoot = dc.const_param.m_swFoot;
 L_thigh = dc.const_param.L_thigh;
-I_swLeg = dc.const_param.I_swLeg;
-I_swFoot = dc.const_param.I_swFoot;
-gravi = dc.const_param.gravi;
+% I_swLeg = dc.const_param.I_swLeg;
+% I_swFoot = dc.const_param.I_swFoot;
+% gravi = dc.const_param.gravi;
 
 x_M = dc.simout_ss(1,:)';
 y_M = dc.simout_ss(2,:)';
