@@ -33,10 +33,6 @@ x1 = foot;
 
 foot_prev = flag(3); % previous location of the stance foot
 
-t_mode_change = flag(4); % time stamp when the mode change happens (TD or LO)
-
-x_LO = flag(5); % lift off location of CoM when it happened
-
 %%
 
 % des_traj

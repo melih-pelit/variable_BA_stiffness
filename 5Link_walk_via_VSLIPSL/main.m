@@ -233,8 +233,41 @@ sim('model_5LinkWalking')
 % trackingPlots(simout, des_z_dz_dx, CoM_acc, sw_ft_pos, sw_ft_des, flag, time)
 trackingPlots_jointAngles(simout, flag, time, des_th)
 
+%% Plot Variable stiffness commands
+% find the flag change indexes
+flag_prev = 1;
+state_change_idx = [];
+for i = 1:length(time)
+    if flag_prev ~= flag(i,1)
+        state_change_idx(end+1) = i;
+        flag_prev = flag(i,1);
+    end
+end
+
+t_start = 0;
+t_end = time(end);
+
+figure()
+nominal = [
+    dc.col_param.k0_ss; 
+    dc.col_param.k_swLeg; 
+    dc.col_param.k_swFoot; 
+    dc.col_param.k0_ds; 
+    dc.col_param.k0_ds];
+labels = ["k_1"; "k_2"; "k_3"; "k_4"; "k_5"];
+for i = 1:5
+    subplot(5,1,i)
+    plot(time, nominal(i) + input_varStiff(:,i))
+    hold on
+    plot(time, nominal(i)*ones(length(time),1))
+    grid on
+    vline(time(state_change_idx),'r')
+    xlim([t_start, t_end])
+    ylabel(labels(i,:))
+end
+
 %% Animation
-f_animation = 1;
+f_animation = 0;
 if f_animation == 1
     f_video = 0; % flag for recrding video
     f_pause = 1;

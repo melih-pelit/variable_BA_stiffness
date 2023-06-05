@@ -1,4 +1,4 @@
-function [x_M, y_M, theta, r, dx_M, dy_M, dtheta, dr, time_elapsed] = calc_5linkTOslipsl(X, flag, param, slipslParams)
+function [X_slipsl, time_elapsed] = calc_5linkTOslipsl(X, flag, param, slipslParams)
 
 tic;
 
@@ -100,5 +100,6 @@ dy_M = dX_slipsl(2);
 dtheta = dX_slipsl(3);
 dr = dX_slipsl(4);
 
+X_slipsl = [x_M; y_M; theta; r; dx_M; dy_M; dtheta; dr];
 time_elapsed = toc;
 end
