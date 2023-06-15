@@ -1,0 +1,3 @@
+[submodule "VSLIPSL"]
+	path = VSLIPSL
+	url = https://github.com/melih-pelit/vslipsl.git
