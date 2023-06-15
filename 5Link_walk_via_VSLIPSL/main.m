@@ -28,10 +28,27 @@ swFootSLIPSL.z = dc.ss_traj.y_sw;
 swFootSLIPSL.dx = dc.ss_traj.dx_sw;
 swFootSLIPSL.dz = dc.ss_traj.dy_sw;
 
+var_stiff_bound = Inf; % limiting constant for var. stiffness
+
 slipslParams = [
-    dc.const_param.m_M; dc.const_param.m_swLeg; dc.const_param.m_swFoot; dc.const_param.L_thigh; dc.const_param.I_swLeg; dc.const_param.I_swFoot; dc.const_param.gravi;
-    dc.col_param.k0_ss; dc.col_param.L0_ss; dc.col_param.k0_ds; dc.col_param.L0_ds; 
-    dc.col_param.k_swFoot; dc.col_param.k_swLeg; dc.col_param.theta0; dc.col_param.r0; dc.col_param.foot; dc.col_param.footPlus];
+    dc.col_param.L0_ss; 
+    dc.col_param.k0_ss; 
+    dc.const_param.m_M; 
+    dc.const_param.m_swLeg; 
+    dc.const_param.m_swFoot; 
+    dc.const_param.I_swLeg; 
+    dc.const_param.I_swFoot; 
+    dc.const_param.L_thigh;
+    dc.col_param.k_swFoot; 
+    dc.col_param.k_swLeg; 
+    dc.col_param.theta0; 
+    dc.col_param.r0;  
+    dc.const_param.gravi;
+    dc.col_param.L0_ds; 
+    dc.col_param.k0_ds;
+    var_stiff_bound;
+    dc.col_param.foot; 
+    dc.col_param.footPlus];
 
 % 2021.09.01: new SLIP-SL trajectory with low CoT (CoT = 0.1907)
 load('SLIPSL_Data\ref_star2021-09-03-14-20') % dc_comp2021-09-01-16-06
@@ -257,11 +274,12 @@ nominal = [
 labels = ["k_1"; "k_2"; "k_3"; "k_4"; "k_5"];
 for i = 1:5
     subplot(5,1,i)
-    plot(time, nominal(i) + input_varStiff(:,i))
+    % plot(time, nominal(i) + input_varStiff(:,i))
+    plot(time, input_varStiff(:,i))
     hold on
-    plot(time, nominal(i)*ones(length(time),1))
+    % plot(time, nominal(i)*ones(length(time),1))
     grid on
-    vline(time(state_change_idx),'r')
+    % vline(time(state_change_idx),'r')
     xlim([t_start, t_end])
     ylabel(labels(i,:))
 end

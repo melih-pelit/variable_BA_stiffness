@@ -62,13 +62,19 @@ y_sw = l1*sin(th1) + l2*sin(th2) + l3*sin(th3) + l4*sin(th4);
 
 %%
 % SLIP-SL constant params
-m_M = slipslParams(1);
-m_swLeg = slipslParams(2);
-m_swFoot = slipslParams(3);
-L_thigh = slipslParams(4);
-I_swLeg = slipslParams(5);
-I_swFoot = slipslParams(6);
-gravi = slipslParams(7);
+L0_ss = slipslParams(1); % [m]
+k0_ss = slipslParams(2); % nominal leg stiffness [N/m]
+m_M = slipslParams(3); % hip mass [kg]
+m_swLeg = slipslParams(4); % [kg]
+m_swFoot = slipslParams(5); % [kg]
+I_swLeg = slipslParams(6); %
+I_swFoot = slipslParams(7); %
+L_thigh = slipslParams(8); % [m]
+k_swFoot = slipslParams(9); %
+k_swLeg = slipslParams(10); %
+theta0 = slipslParams(11); %[rad]
+r0 = slipslParams(12); % [m]
+gravi = slipslParams(13); % gravitational acc
 
 F_X = @(X) [
         x_CoM - (m_swFoot*(X(1) + cos(X(3))*(L_thigh + X(4))) + m_swLeg*(X(1) + (L_thigh*cos(X(3)))/2) + m_M*X(1))/(m_M + m_swLeg + m_swFoot);
