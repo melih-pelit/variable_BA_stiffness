@@ -28,7 +28,7 @@ swFootSLIPSL.z = dc.ss_traj.y_sw;
 swFootSLIPSL.dx = dc.ss_traj.dx_sw;
 swFootSLIPSL.dz = dc.ss_traj.dy_sw;
 
-var_stiff_bound = Inf; % limiting constant for var. stiffness
+var_stiff_bound = 1; % limiting constant for var. stiffness
 
 slipslParams = [
     dc.col_param.L0_ss; 
@@ -94,13 +94,13 @@ params.I3 = params.I1;
 params.I4 = params.I2;
 params.I5 = params.m5*params.l5^2/12;
 
-params.r = 1.6; % dimensionless lever arm ratio (found from optimizing wrt SR) r = r_h / r_k
-params.k_bar_ba = 200; % [Nm] k_bar_ba = k_ba * r_k^2
+params.r = 2.0; % dimensionless lever arm ratio (found from optimizing wrt SR) r = r_h / r_k
+params.k_bar_ba = 30; % [Nm] k_bar_ba = k_ba * r_k^2
 
 params.r_k = 0.02; % [m] we choose this value and rest of the parameters are defined according to it and r, k_bar_ba
 params.r_h = params.r*params.r_k; % [m]
-% params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
-params.k_ba = 0; % [N/m]
+params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
+% params.k_ba = 0; % [N/m]
 params.phi_h0 = pi; % [rad] free angle of springs at hip
 params.phi_k0 = pi; % [rad] free angle of springs at knee
 
