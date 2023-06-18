@@ -28,7 +28,7 @@ swFootSLIPSL.z = dc.ss_traj.y_sw;
 swFootSLIPSL.dx = dc.ss_traj.dx_sw;
 swFootSLIPSL.dz = dc.ss_traj.dy_sw;
 
-var_stiff_bound = Inf; % limiting constant for var. stiffness
+var_stiff_bound = 1; % limiting constant for var. stiffness
 
 slipslParams = [
     dc.col_param.L0_ss; 
@@ -94,17 +94,35 @@ params.I3 = params.I1;
 params.I4 = params.I2;
 params.I5 = params.m5*params.l5^2/12;
 
-params.r = 1.6; % dimensionless lever arm ratio (found from optimizing wrt SR) r = r_h / r_k
-params.k_bar_ba = 200; % [Nm] k_bar_ba = k_ba * r_k^2
+params.r = 2.0; % dimensionless lever arm ratio (found from optimizing wrt SR) r = r_h / r_k
+params.k_bar_ba = 30; % [Nm] k_bar_ba = k_ba * r_k^2
 
 params.r_k = 0.02; % [m] we choose this value and rest of the parameters are defined according to it and r, k_bar_ba
 params.r_h = params.r*params.r_k; % [m]
-% params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
-params.k_ba = 0; % [N/m]
+params.k_ba = params.k_bar_ba/(params.r_k^2); % [N/m]
+% params.k_ba = 0; % [N/m]
 params.phi_h0 = pi; % [rad] free angle of springs at hip
 params.phi_k0 = pi; % [rad] free angle of springs at knee
 
-param = [params.m1; params.m2; params.m5; params.l1; params.l2; params.l5; params.g; params.I1; params.I2; params.I5; params.r_k; params.r_h; params.k_ba; params.phi_h0; params.phi_k0];
+params.varStiff_control_reduction_ratio = 0.5; % reduce the effect of VSLISP controller by this ratio
+
+param = [
+    params.m1; 
+    params.m2; 
+    params.m5; 
+    params.l1; 
+    params.l2; 
+    params.l5; 
+    params.g; 
+    params.I1; 
+    params.I2; 
+    params.I5; 
+    params.r_k; 
+    params.r_h; 
+    params.k_ba; 
+    params.phi_h0; 
+    params.phi_k0; 
+    params.varStiff_control_reduction_ratio];
 
 %% generate discrete alpha
 
@@ -238,6 +256,15 @@ gains = [
     1000, 75];
 
 % Run the simulation
+sim_settings.use_variable_stiffness_BA = true;
+
+sim_settings_bus_info = Simulink.Bus.createObject(sim_settings);
+sim_settings_bus = evalin('base', sim_settings_bus_info.busName);
+% set the Constant Block output datatype as "Bus: sim_settings_bus"
+% Also in the model explorer inside the matlab function
+
+display(sim_settings)
+
 gamma = 5;
 
 open_system('model_5LinkWalking')
@@ -250,45 +277,43 @@ sim('model_5LinkWalking')
 % trackingPlots(simout, des_z_dz_dx, CoM_acc, sw_ft_pos, sw_ft_des, flag, time)
 trackingPlots_jointAngles(simout, flag, time, des_th)
 
-%% Plot Variable stiffness commands
-% find the flag change indexes
-flag_prev = 1;
-state_change_idx = [];
-for i = 1:length(time)
-    if flag_prev ~= flag(i,1)
-        state_change_idx(end+1) = i;
-        flag_prev = flag(i,1);
+%% Plot VSLIPSL Variable stiffness commands
+plot_VSLIPSL_U(time, U_varStiff_SLIPSL, flag, dc)
+
+%% Plot 5-Link BA stifnesses
+% TODO
+
+%% Calculate the tracking error 
+% detect state change
+flag_prev = flag(1,1);
+state_change_idx = [1];
+for i = 2:length(flag(:,1))
+    flag_cur = flag(i,1);
+    if flag_cur ~= flag_prev
+        state_change_idx(end + 1) = i;
+    end
+    flag_prev = flag_cur;
+end
+
+tracking_error = zeros(length(time), 5);
+end_step = step_no(end) - 2;
+for j = 1:5
+    for i = 1:end_step
+        % tracking_error(:,i) = abs(mod(des_th(:,i), 2*pi) - mod(simout(:,i), 2*pi));
+        start_id = state_change_idx(2*i + 1);
+        end_id = state_change_idx(2*i + 3);
+        current_step_tracking_error(i,j) =sum( ...
+            abs(mod(des_th(start_id:end_id,j), 2*pi) - mod(simout(start_id:end_id,j), 2*pi)));
     end
 end
 
-t_start = 0;
-t_end = time(end);
-
-figure()
-nominal = [
-    dc.col_param.k0_ss; 
-    dc.col_param.k_swLeg; 
-    dc.col_param.k_swFoot; 
-    dc.col_param.k0_ds; 
-    dc.col_param.k0_ds];
-labels = ["k_1"; "k_2"; "k_3"; "k_4"; "k_5"];
-for i = 1:5
-    subplot(5,1,i)
-    % plot(time, nominal(i) + input_varStiff(:,i))
-    plot(time, input_varStiff(:,i))
-    hold on
-    % plot(time, nominal(i)*ones(length(time),1))
-    grid on
-    % vline(time(state_change_idx),'r')
-    xlim([t_start, t_end])
-    ylabel(labels(i,:))
-end
+sprintf('Total tracking error is %f', sum(sum(current_step_tracking_error))/end_step)
 
 %% Animation
-f_animation = 0;
+f_animation = 1;
 if f_animation == 1
     f_video = 0; % flag for recrding video
-    f_pause = 1;
+    f_pause = 0;
     frame_leap = 20;
     animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj, des_th);
 %     animation(f_video, simout, sample_time, param, f_pause, frame_leap, flag, step_no, force, des_traj_alpha, des_th);
