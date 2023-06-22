@@ -3,6 +3,7 @@ tic
 clear
 close all
 
+addpath("..\misc_resources\altmany-export_fig-d8b9f4a")
 %% SLIP Data
 
 % 2021.09.01: new SLIP-SL trajectory with low CoT (CoT = 0.1907)
@@ -242,7 +243,7 @@ search_step = 1; % number of times to try the particles
 
 f_reset = 1; % choose if you have reset best particle or not
 f_record = 0; % choose whether pBestMemo should be saved automatically
-f_dist = [0; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
+f_dist = [1; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
 
 Tf = 15; % simulation finish time [secs]
 %%
@@ -270,19 +271,44 @@ gamma = 5;
 open_system('model_5LinkWalking')
 sim('model_5LinkWalking')
 
+%%
+flag_print = false;
+if f_dist(1) == 1
+    save_name = "disturbance_on";
+else
+    save_name = "disturbance_off";
+end
+
 %% Stability Analysis
 % figure_poincare(simout, param, flag(:,2), step_no, rt_VLO, time)
 
 %% CoM acceleration comparison
-% trackingPlots(simout, des_z_dz_dx, CoM_acc, sw_ft_pos, sw_ft_des, flag, time)
-trackingPlots_jointAngles(simout, flag, time, des_th)
+plot_tracking_jointAngles(simout, flag, time, des_th, flag_print, save_name)
 
 %% Plot VSLIPSL Variable stiffness commands
-plot_VSLIPSL_U(time, U_varStiff_SLIPSL, flag, dc)
+plot_VSLIPSL_U(time, U_varStiff_SLIPSL, flag, dc, flag_print, save_name)
 
 %% Plot 5-Link BA stifnesses
 % TODO
+figure()
+subplot(3,1,1:2)
+plot(time, squeeze(U_varStiff_BA))
+legend
+ylabel('u_{BA}')
+subplot(3,1,3)
+plot(time, flag(:,1))
+xlabel("Time [sec]")
+ylabel("Walking Phase")
 
+%% Plot Tracking Error
+% TODO
+figure()
+for i = 1:5
+    subplot(5,1,i)
+    tracking_error = abs(mod(des_th(:,i), 2*pi) ...
+        - mod(simout(:,i), 2*pi));
+    plot(time, tracking_error)
+end
 %% Calculate the tracking error 
 % detect state change
 flag_prev = flag(1,1);
