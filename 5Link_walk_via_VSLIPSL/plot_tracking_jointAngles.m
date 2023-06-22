@@ -44,9 +44,9 @@ end
 
 if flag_print
     if nargin >= 6
-        export_fig("figures\fig_trackingPlots_jointAngles" + varargin{1}, '-m3')
+        export_fig("figures\tracking_jointAngles" + varargin{1}, '-m3')
     else
-        export_fig("figures\fig_trackingPlots_jointAngles", '-m3')
+        export_fig("figures\tracking_jointAngles", '-m3')
     end
 end
 

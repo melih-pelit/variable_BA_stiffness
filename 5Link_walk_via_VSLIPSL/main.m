@@ -4,6 +4,7 @@ clear
 close all
 
 addpath("..\misc_resources\altmany-export_fig-d8b9f4a")
+addpath("..\VSLIPSL")
 %% SLIP Data
 
 % 2021.09.01: new SLIP-SL trajectory with low CoT (CoT = 0.1907)
@@ -243,7 +244,7 @@ search_step = 1; % number of times to try the particles
 
 f_reset = 1; % choose if you have reset best particle or not
 f_record = 0; % choose whether pBestMemo should be saved automatically
-f_dist = [1; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
+f_dist = [0; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
 
 Tf = 15; % simulation finish time [secs]
 %%
@@ -257,7 +258,7 @@ gains = [
     1000, 75];
 
 % Run the simulation
-sim_settings.use_variable_stiffness_BA = true;
+sim_settings.use_variable_stiffness_BA = false;
 
 sim_settings_bus_info = Simulink.Bus.createObject(sim_settings);
 sim_settings_bus = evalin('base', sim_settings_bus_info.busName);
@@ -289,16 +290,7 @@ plot_tracking_jointAngles(simout, flag, time, des_th, flag_print, save_name)
 plot_VSLIPSL_U(time, U_varStiff_SLIPSL, flag, dc, flag_print, save_name)
 
 %% Plot 5-Link BA stifnesses
-% TODO
-figure()
-subplot(3,1,1:2)
-plot(time, squeeze(U_varStiff_BA))
-legend
-ylabel('u_{BA}')
-subplot(3,1,3)
-plot(time, flag(:,1))
-xlabel("Time [sec]")
-ylabel("Walking Phase")
+plot_5Link_ba_stiffness(time, U_varStiff_BA, flag, params, flag_print, save_name)
 
 %% Plot Tracking Error
 % TODO
