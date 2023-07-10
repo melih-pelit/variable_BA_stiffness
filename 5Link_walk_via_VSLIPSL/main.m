@@ -244,7 +244,7 @@ search_step = 1; % number of times to try the particles
 
 f_reset = 1; % choose if you have reset best particle or not
 f_record = 0; % choose whether pBestMemo should be saved automatically
-f_dist = [0; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
+f_dist = [1; -100; 0]; % flag for activating or deactivating the dist forces and choosing their magnitudes [on/off; F_dist_x, F_dist_y]
 
 Tf = 15; % simulation finish time [secs]
 %%
@@ -258,7 +258,7 @@ gains = [
     1000, 75];
 
 % Run the simulation
-sim_settings.use_variable_stiffness_BA = false;
+sim_settings.use_variable_stiffness_BA = true;
 
 sim_settings_bus_info = Simulink.Bus.createObject(sim_settings);
 sim_settings_bus = evalin('base', sim_settings_bus_info.busName);
@@ -300,6 +300,7 @@ for i = 1:5
     tracking_error = abs(mod(des_th(:,i), 2*pi) ...
         - mod(simout(:,i), 2*pi));
     plot(time, tracking_error)
+    ylabel("error " + num2str(i) + " [rad]")
 end
 %% Calculate the tracking error 
 % detect state change
